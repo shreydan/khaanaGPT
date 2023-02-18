@@ -1,4 +1,6 @@
 from transformers import pipeline
+import gradio as gr
+
 import warnings
 warnings.simplefilter('ignore')
 
@@ -7,7 +9,7 @@ model_path = './khaanaGPT'
 contrastive_search_config = dict(
     penalty_alpha = 0.5,
     top_k = 5,
-    max_new_tokens = 300,
+    max_new_tokens = 512,
     pad_token_id = 50259
 )
 
@@ -24,10 +26,21 @@ def generate(prompt):
     recipe = recipe.replace('<|startoftext|>','')
     return recipe
 
+def wrapper(ingredients):
+    prompt = create_prompt(ingredients)
+    recipe = generate(prompt)
+    return recipe
 
 
+with gr.Blocks() as demo:
+    gr.HTML('<center><h1>KhaanaGPT</h1></center>')
+    ingredients = gr.Textbox(label="ingredients",placeholder='separate the ingredients with a comma.')
+    output = gr.Textbox(label="recipe",lines=15,)
+    greet_btn = gr.Button("Create a recipe!")
+    gr.Examples(['yellow dal, turmeric, green peas, tomatoes',
+                'chicken, soy sauce, tomato sauce, vinegar'],
+                inputs=ingredients
+            )
+    greet_btn.click(fn=wrapper, inputs=ingredients, outputs=output)
 
-sample = 'tomatoes, yellow dal, turmeric, oil'
-prompt = create_prompt(sample)
-recipe = generate(prompt)
-print(recipe)
+demo.launch()

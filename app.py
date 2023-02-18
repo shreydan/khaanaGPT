@@ -1,6 +1,17 @@
 from transformers import pipeline
+import warnings
+warnings.simplefilter('ignore')
 
 model_path = './khaanaGPT'
+
+contrastive_search_config = dict(
+    penalty_alpha = 0.5,
+    top_k = 5,
+    max_new_tokens = 300,
+    pad_token_id = 50259
+)
+
+model = pipeline('text-generation',model=model_path)
 
 def create_prompt(ingredients):
     ingredients = ','.join([x.strip() for x in ingredients.split(',')])
@@ -9,14 +20,14 @@ def create_prompt(ingredients):
     return s
 
 def generate(prompt):
-    recipe = model(prompt,
-                    max_new_tokens=512,
-                    penalty_alpha=0.5,
-                    top_k=5,
-                    pad_token_id=50259,
-                    )[0]['generated_text']
+    recipe = model(prompt,**contrastive_search_config)[0]['generated_text']
     recipe = recipe.replace('<|startoftext|>','')
     return recipe
 
 
-model = pipeline(task='text-generation',model=model_path)
+
+
+sample = 'tomatoes, yellow dal, turmeric, oil'
+prompt = create_prompt(sample)
+recipe = generate(prompt)
+print(recipe)
